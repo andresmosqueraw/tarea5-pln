@@ -11,13 +11,29 @@ screen -S ejecucion_notebook
 ```
 
 ### Dentro de screen, ejecutar el notebook:
+
+**Opción A: Usando el script (recomendado - muestra tiempo y errores):**
+```bash
+cd /home/estudiante/punto2/mi-solution
+./ejecutar_persistente.sh
+```
+
+**Opción B: Comando directo con debug:**
 ```bash
 cd /home/estudiante/punto2/mi-solution
 source /home/estudiante/tldr-uniandes/encoders-vs-decoders-classification/venv/bin/activate
-jupyter nbconvert --to notebook --execute solution.ipynb --inplace
+time jupyter nbconvert --to notebook --execute solution.ipynb --inplace --debug
 ```
 
-**Importante:** El flag `--inplace` hace que los resultados se guarden en el mismo archivo `solution.ipynb`. Cuando termine, podrás abrir el notebook y ver todos los outputs.
+**Explicación de flags:**
+- `--inplace`: Guarda los resultados en el mismo archivo `solution.ipynb`
+- `--debug`: Muestra errores detallados en la consola (muy útil para debugging)
+- `time`: Muestra el tiempo total de ejecución al final
+
+**Importante:** 
+- Los errores aparecerán directamente en la consola gracias al flag `--debug`
+- El comando `time` mostrará cuánto tiempo llevó la ejecución completa
+- Cuando termine, podrás abrir el notebook y ver todos los outputs guardados
 
 ### Para desconectarte de screen (sin detener la ejecución):
 Presiona: `Ctrl+A` luego `D` (detach)
@@ -25,6 +41,59 @@ Presiona: `Ctrl+A` luego `D` (detach)
 ### Para reconectarte a la sesión:
 ```bash
 screen -r ejecucion_notebook
+```
+
+### ⭐ Verificar si se está ejecutando SIN entrar a screen (Recomendado):
+
+**Método más fácil: Usar el script de verificación**
+```bash
+cd /home/estudiante/punto2/mi-solution
+./verificar_ejecucion.sh
+```
+
+Este script te muestra:
+- ✅ Si hay sesiones de screen activas
+- ✅ Si hay procesos de nbconvert corriendo
+- ✅ Cuánto tiempo lleva ejecutándose
+- ✅ Estado del archivo notebook
+- ✅ Resumen del estado actual
+
+**Comandos rápidos (sin script):**
+```bash
+# Ver si hay procesos de nbconvert activos
+ps aux | grep "nbconvert.*solution.ipynb" | grep -v grep
+
+# Ver tiempo transcurrido del proceso (si existe)
+ps aux | grep "nbconvert.*solution.ipynb" | grep -v grep | awk '{print $2}' | xargs -I {} ps -p {} -o etime=
+
+# Ver sesiones de screen
+screen -ls | grep ejecucion_notebook
+```
+
+### Ver el tiempo transcurrido mientras se ejecuta:
+
+**Método 1: Reconectarte a screen y ver el progreso**
+```bash
+screen -r ejecucion_notebook
+# Verás el tiempo de inicio y el progreso en tiempo real
+# Usa Ctrl+A luego [ para hacer scroll y ver el historial
+```
+
+**Método 2: Ver cuánto tiempo lleva el proceso corriendo**
+```bash
+# Encontrar el PID del proceso
+ps aux | grep nbconvert | grep -v grep
+
+# Ver el tiempo transcurrido del proceso (reemplaza PID)
+ps -p PID -o etime
+# Ejemplo de salida: "02:15:30" (2 horas, 15 minutos, 30 segundos)
+```
+
+**Método 3: Verificar si el notebook se está actualizando**
+```bash
+# Ver la fecha de última modificación del notebook
+ls -l --time-style=+'%F %T' /home/estudiante/punto2/mi-solution/solution.ipynb
+# Si la fecha cambia, significa que el proceso sigue activo y guardando resultados
 ```
 
 ### Para ver todas las sesiones screen:
@@ -50,7 +119,7 @@ tmux new -s ejecucion_notebook
 ```bash
 cd /home/estudiante/punto2/mi-solution
 source /home/estudiante/tldr-uniandes/encoders-vs-decoders-classification/venv/bin/activate
-jupyter nbconvert --to notebook --execute solution.ipynb --inplace
+time jupyter nbconvert --to notebook --execute solution.ipynb --inplace --debug
 ```
 
 ### Para desconectarte de tmux:
@@ -79,7 +148,7 @@ tmux kill-session -t ejecucion_notebook
 ```bash
 cd /home/estudiante/punto2/mi-solution
 source /home/estudiante/tldr-uniandes/encoders-vs-decoders-classification/venv/bin/activate
-nohup jupyter nbconvert --to notebook --execute solution.ipynb --inplace > ejecucion.log 2>&1 &
+nohup time jupyter nbconvert --to notebook --execute solution.ipynb --inplace --debug > ejecucion.log 2>&1 &
 ```
 
 ### Ver el progreso en tiempo real:
